@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Leave Management System</title>
+  <style>
+    /* General body styling */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #9ebbd1;  /* Light blue background color for the body */
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      background-color: #1fbb84;  /* White background color for the container */
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(185, 59, 9, 0.2);
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    label {
+      font-weight: bold;         /* Make text bold */
+      padding: 5px;              /* Add padding for spacing */
+      border: 2px solid #007bff; /* Blue border */
+      border-radius: 4px;        /* Rounded corners */
+      display: inline-block;     /* Block element */
+      margin-bottom: 5px;        /* Space below the label */
+      background-color: #e2cbcb; /* Light background for contrast */
+    }
+
+    input, textarea, button {
+      padding: 10px;
+      font-size: 16px;
+      background-color: whitesmoke;  /* Light blue background for form fields */
+      border: 1px solid #bc5120; 
+      border-radius: 20px; /* Light border for form fields */
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      border-radius: 30px
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: #fafafa;  /* Light gray background for the table */
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f4f4f4;
+    }
+
+    .status-approved {
+      color: green;
+    }
+
+    .status-rejected {
+      color: red;
+    }
+
+    .action-button {
+      padding: 5px 10px;
+      margin: 2px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+    }
+
+    .approve {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .reject {
+      background-color: #dc3545;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Student Leave Management System</h1>
+
+    <div class="form-section">
+      <h2>Submit a Leave Request</h2>
+      <form id="leaveForm">
+        <!-- Roll Number Field -->
+        <label for="rollNo">Roll Number:</label>
+        <input type="text" id="rollNo" placeholder="Enter your roll number" required><br>
+
+        <label for="studentName">Student Name:</label>
+        <input type="text" id="studentName" placeholder="Enter your name" required><br>
+        
+        <label for="leaveDate">Leave Date:</label>
+        <input type="date" id="leaveDate" required><br>
+        
+        <label for="reason">Reason for Leave:</label>
+        <textarea id="reason" placeholder="Enter your reason" required></textarea><br>
+        
+        <button type="button" onclick="submitLeaveRequest()">Submit Request</button>
+      </form>
+    </div>
+
+    <div class="admin-section">
+      <h2>Admin: View Leave Requests</h2>
+      <table id="leaveTable">
+        <thead>
+          <tr>
+            <th>Roll Number</th>
+            <th>Student Name</th>
+            <th>Leave Date</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Leave requests will be dynamically added here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Submit a leave request
+    function submitLeaveRequest() {
+      const rollNo = document.getElementById("rollNo").value;
+      const studentName = document.getElementById("studentName").value;
+      const leaveDate = document.getElementById("leaveDate").value;
+      const reason = document.getElementById("reason").value;
+
+      if (!rollNo || !studentName || !leaveDate || !reason) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      const leaveRequest = {
+        rollNo,
+        studentName,
+        leaveDate,
+        reason,
+        status: "Pending"
+      };
+
+      // Save to localStorage
+      const leaveRequests = JSON.parse(localStorage.getItem("leaveRequests")) || [];
+      leaveRequests.push(leaveRequest);
+      localStorage.setItem("leaveRequests", JSON.stringify(leaveRequests));
+
+      alert("Leave request submitted successfully!");
+      document.getElementById("leaveForm").reset();
+      renderLeaveRequests();
+    }
+
+    // Render leave requests in the table
+    function renderLeaveRequests() {
+      const leaveRequests = JSON.parse(localStorage.getItem("leaveRequests")) || [];
+      const leaveTableBody = document.querySelector("#leaveTable tbody");
+      leaveTableBody.innerHTML = "";
+
+      leaveRequests.forEach((request, index) => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+          <td>${request.rollNo}</td>
+          <td>${request.studentName}</td>
+          <td>${request.leaveDate}</td>
+          <td>${request.reason}</td>
+          <td class="${request.status === "Approved" ? "status-approved" : request.status === "Rejected" ? "status-rejected" : ""}">
+            ${request.status}
+          </td>
+          <td>
+            <button class="action-button approve" onclick="updateStatus(${index}, 'Approved')">Approve</button>
+            <button class="action-button reject" onclick="updateStatus(${index}, 'Rejected')">Reject</button>
+          </td>
+        `;
+
+        leaveTableBody.appendChild(row);
+      });
+    }
+
+    // Update the status of a leave request
+    function updateStatus(index, status) {
+      const leaveRequests = JSON.parse(localStorage.getItem("leaveRequests")) || [];
+      leaveRequests[index].status = status;
+      localStorage.setItem("leaveRequests", JSON.stringify(leaveRequests));
+      renderLeaveRequests();
+    }
+
+    // Initialize the table on page load
+    document.addEventListener("DOMContentLoaded", renderLeaveRequests);
+  </script>
+</body>
+</html>
